@@ -1,0 +1,12 @@
+{
+    "name": "WeChat Message Demo",
+    "version": "1.0.0",
+    "author": "Piyush",
+    "dependencies": {
+        "body-parser": "^1.18.3",
+        "body-parser-xml": "^1.1.0",
+        "dotenv": "^6.2.0",
+        "express": "^4.16.2",
+        "http": "0.0.0"
+    }
+}
