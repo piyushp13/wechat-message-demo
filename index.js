@@ -22,7 +22,7 @@ try {
 } catch (err) {
   console.log('crypto support is disabled!');
 }
-const shasum = crypto.createHash('sha1');
+
 app.get('/wechat', (req, res) => {
   res.setHeader('Content-Type', 'text/plain')
   if (req.query) {
@@ -31,26 +31,27 @@ app.get('/wechat', (req, res) => {
     const nonce = req.query.nonce || '';
     const echostr = req.query.echostr || '';
     if (compareSignature(signature, timestamp, nonce)) {
-      res.end(echostr);
+      res.send(echostr);
     } else {
-      res.end('Signature not matched');
+      res.send(echostr);
     }
   }
 });
 
 function compareSignature(signature, timestamp, nonce) {
   const sortedParams = [config.token, timestamp, nonce].sort();
-    const joinedParamString = sortedParams.join("");
-    shasum.update(joinedParamString);
-    const generatedSignature = shasum.digest('hex');
-    console.log(generatedSignature);
-    if (signature == generatedSignature) {
-        return true;
-      } else {
-        return false;
-      }
+  const joinedParamString = sortedParams.join("");
+  const shasum = crypto.createHash('sha1');
+  shasum.update(joinedParamString);
+  const generatedSignature = shasum.digest('hex');
+  console.log(generatedSignature);
+  if (signature == generatedSignature) {
+    return true;
+  } else {
+    return false;
   }
-  const createMessage = (to, from, content) => `
+}
+const createMessage = (to, from, content) => `
     <xml>
       <ToUserName><![CDATA[${to}]]></ToUserName>
       <FromUserName><![CDATA[${from}]]></FromUserName>
@@ -60,47 +61,47 @@ function compareSignature(signature, timestamp, nonce) {
       <FuncFlag>0</FuncFlag>
     </xml>
   `;
-  const handleUnknown = (res, xml) => {
+const handleUnknown = (res, xml) => {
+  const msg = createMessage(
+    xml.FromUserName[0],
+    xml.ToUserName[0],
+    "Sorry, I don't understand what you just sent...",
+  )
+  console.log(`WeChat - Responding with: ${msg}`)
+  return res.send(msg)
+};
+const handleText = (res, xml) => {
+  const msg = createMessage(
+    xml.FromUserName[0],
+    xml.ToUserName[0],
+    xml.Content[0].split('').reverse().join(''),
+  )
+  console.log(`WeChat - Responding with: ${msg}`)
+  return res.send(msg)
+};
+const handleEvent = (res, xml) => {
+  const [event] = xml.Event
+  if (event === 'subscribe') {
     const msg = createMessage(
       xml.FromUserName[0],
       xml.ToUserName[0],
-      "Sorry, I don't understand what you just sent...",
+      'Welcome to our Official Account!',
     )
     console.log(`WeChat - Responding with: ${msg}`)
     return res.send(msg)
-  };
-  const handleText = (res, xml) => {
-    const msg = createMessage(
-      xml.FromUserName[0],
-      xml.ToUserName[0],
-      xml.Content[0].split('').reverse().join(''),
-    )
-    console.log(`WeChat - Responding with: ${msg}`)
-    return res.send(msg)
-  };
-  const handleEvent = (res, xml) => {
-    const [ event ] = xml.Event
-    if (event === 'subscribe') {
-      const msg = createMessage(
-        xml.FromUserName[0],
-        xml.ToUserName[0],
-        'Welcome to our Official Account!',
-      )
-      console.log(`WeChat - Responding with: ${msg}`)
-      return res.send(msg)
-    } else {
-      return notFound(res)
-    }
-  };
-  app.post('/wechat', (req, res) => {
-    const { xml } = req.body
-    console.log(`WeChat - Got request: ${JSON.stringify(xml)}`)
-    switch (xml.MsgType[0]) {
-      case 'event':
-        return handleEvent(res, xml)
-      case 'text':
-        return handleText(res, xml)
-      default:
+  } else {
+    return notFound(res)
+  }
+};
+app.post('/wechat', (req, res) => {
+  const { xml } = req.body
+  console.log(`WeChat - Got request: ${JSON.stringify(xml)}`)
+  switch (xml.MsgType[0]) {
+    case 'event':
+      return handleEvent(res, xml)
+    case 'text':
+      return handleText(res, xml)
+    default:
       return handleUnknown(res, xml)
   }
   return notFound(res)
