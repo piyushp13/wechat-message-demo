@@ -38,6 +38,11 @@ app.get('/wechat', (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('WeChat Server Running');
+});
+
 function compareSignature(signature, timestamp, nonce) {
   const sortedParams = [config.token, timestamp, nonce].sort();
   const joinedParamString = sortedParams.join("");
