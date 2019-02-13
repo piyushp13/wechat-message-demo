@@ -93,6 +93,7 @@ const handleText = (res, xml) => {
                   default:
                           reply = "I'm afraid I can't comment on that.";
   }
+}
 const handleEvent = (res, xml) => {
   const [event] = xml.Event
   if (event === 'subscribe') {
