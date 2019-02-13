@@ -76,14 +76,23 @@ const handleUnknown = (res, xml) => {
   return res.send(msg)
 };
 const handleText = (res, xml) => {
-  const msg = createMessage(
-    xml.FromUserName[0],
-    xml.ToUserName[0],
-    xml.Content[0].split('').reverse().join(''),
-  )
-  console.log(`WeChat - Responding with: ${msg}`)
-  return res.send(msg)
-};
+    let content = xml.Content[0];
+          let reply = content;
+          content = content.toLowerCase();
+          switch(content) {
+                case 'hi':
+                case 'hello':
+                case 'hey':
+                        reply = content;
+                          break;
+                case 'how are you?':
+                case 'how are you':
+                case 'how are you doing':
+                        reply = "I'm good, what about you?";
+                break;
+                  default:
+                          reply = "I'm afraid I can't comment on that.";
+  }
 const handleEvent = (res, xml) => {
   const [event] = xml.Event
   if (event === 'subscribe') {
