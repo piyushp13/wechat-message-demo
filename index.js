@@ -1,18 +1,31 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const http = require('http');
+const cors = require('cors');
+const axios = require('axios');
+const fs = require('fs');
+let accessToken = null;
 // const wechat = require('wechat'); // Github: https://github.com/node-webot/wechat
 
-const bodyParser = require('body-parser')
-require('body-parser-xml')(bodyParser)
+const bodyParser = require('body-parser');
+require('body-parser-xml')(bodyParser);
 
-const app = express()
-app.use(bodyParser.xml())
+const app = express();
+app.use(cors());
+app.use(bodyParser.xml());
+app.use(bodyParser.json());
 // const router = express.Router();
+
+const projectName = __dirname.split(path.sep).pop();
+const staticDirectory = `${__dirname}${path.sep}dist${path.sep}${projectName}`;
+console.log(staticDirectory);
+app.use(express.static(staticDirectory));
 
 const config = {
   token: process.env.TOKEN,
   appid: process.env.APP_ID,
+  appsecret: process.env.APP_SECRET
   // encodingAESKey: ''
 };
 
@@ -38,11 +51,6 @@ app.get('/wechat', (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('WeChat Server Running');
-});
-
 function compareSignature(signature, timestamp, nonce) {
   const sortedParams = [config.token, timestamp, nonce].sort();
   const joinedParamString = sortedParams.join("");
@@ -56,6 +64,20 @@ function compareSignature(signature, timestamp, nonce) {
     return false;
   }
 }
+
+async function getAccessToken() {
+  const tokenUrl = `https://api.wechat.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
+  const token = null;
+  try {
+    token = await axios.get(tokenUrl);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    console.log('Access Token is: ', token);
+  }
+  return token;
+}
+
 const createMessage = (to, from, content) => `
     <xml>
       <ToUserName><![CDATA[${to}]]></ToUserName>
@@ -128,6 +150,12 @@ app.post('/wechat', (req, res) => {
   }
   return notFound(res)
 });
+
+app.post('/sendMessage', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  console.log('Request is: ', req.body);
+  res.end('Hello');
+});
 var port = process.env.PORT || '3000';
 app.set('port', port);
 
@@ -156,5 +184,9 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   console.log('Listening on ' + bind);
+  if (!accessToken) {
+    accessToken = await getAccessToken();
+    fs.writeFile('access-token.txt', accessToken, {encoding: 'utf8'});
+  }
 }
 module.exports = app;

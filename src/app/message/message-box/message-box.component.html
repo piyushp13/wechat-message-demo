@@ -1,0 +1,19 @@
+<mat-card style="width: 100%;" fxLayout="column" fxLayoutAlign="start center">
+  <form #messageForm="ngForm" (ngSubmit)="onSubmit(messageForm.form.value)">
+    <div style="width: 100%;" fxLayout="column" fxLayoutAlign="start center">
+      <div style="width: 100%;" fxLayout="row" fxLayoutAlign="start center">
+        <mat-form-field>
+          <input type="text" matInput placeholder="Recipient" [(ngModel)]="recipient" name="recipient">
+        </mat-form-field>
+      </div>
+      <div style="width: 100%;" fxLayout="row" fxLayoutAlign="start center">
+        <mat-form-field class="example-full-width">
+          <textarea matInput placeholder="Enter your message here" [(ngModel)]="message" name="message"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+    <div style="width: 100%;" fxLayout="row" fxLayoutAlign="center center">
+      <button type="submit" mat-raised-button color="accent">Send</button>
+    </div>
+  </form>
+</mat-card>
