@@ -8,7 +8,8 @@ import { MatSnackBar } from '@angular/material';
   styleUrls: ['./message-box.component.scss']
 })
 export class MessageBoxComponent implements OnInit {
-
+  public recipient = 'piyush';
+  public message = 'Hi';
   constructor(private messageService: MessageService,
               private snackBar: MatSnackBar) { }
 
