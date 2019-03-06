@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 // const router = express.Router();
 
 const projectName = __dirname.split(path.sep).pop();
-const staticDirectory = `${__dirname}${path.sep}dist${path.sep}${projectName}`;
+const staticDirectory = `${__dirname}${path.sep}dist`;
 console.log(staticDirectory);
 app.use(express.static(staticDirectory));
 
