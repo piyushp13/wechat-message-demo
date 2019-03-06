@@ -197,9 +197,13 @@ function onListening() {
   if (!accessToken) {
     accessToken = getAccessToken().then(token => {
       accessToken = token;
-      fs.writeFile('access-token.txt', accessToken, { encoding: 'utf8' });
+      fs.writeFile('access-token.txt', accessToken, { encoding: 'utf8' }, () => {
+        console.log('Access token stored');
+      });
     }).catch(error => {
-      fs.writeFile('access-token.txt', error, { encoding: 'utf8' });
+      fs.writeFile('access-token.txt', error, { encoding: 'utf8' }, () => {
+        console.log('Access token not stored');
+      });
     });
   }
 }
