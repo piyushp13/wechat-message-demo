@@ -67,9 +67,14 @@ function compareSignature(signature, timestamp, nonce) {
 
 async function getAccessToken() {
   const tokenUrl = `https://api.wechat.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
-  const token = null;
+  let token = null;
   try {
-    token = await axios.get(tokenUrl);
+    const response = await axios.get(tokenUrl);
+    if ('access_token' in response) {
+      token = response['access_token'];
+    } else {
+      throw new Error('Invalid request');
+    }
   } catch (error) {
     console.log(error);
   } finally {
@@ -178,7 +183,7 @@ server.listen(port);
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening() {
+async function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
