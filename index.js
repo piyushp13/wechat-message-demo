@@ -19,6 +19,7 @@ app.use(bodyParser.json());
 
 const projectName = __dirname.split(path.sep).pop();
 const staticDirectory = `${__dirname}${path.sep}dist${path.sep}${projectName}`;
+console.log(staticDirectory);
 app.use(express.static(staticDirectory));
 
 const config = {
