@@ -19,7 +19,6 @@ app.use(bodyParser.json());
 
 const projectName = __dirname.split(path.sep).pop();
 const staticDirectory = `${__dirname}${path.sep}dist${path.sep}${projectName}`;
-console.log(staticDirectory);
 app.use(express.static(staticDirectory));
 
 const config = {
@@ -65,22 +64,28 @@ function compareSignature(signature, timestamp, nonce) {
   }
 }
 
-async function getAccessToken() {
+function getAccessToken() {
   const tokenUrl = `https://api.wechat.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
   let token = null;
-  try {
-    const response = await axios.get(tokenUrl);
-    if ('access_token' in response) {
-      token = response['access_token'];
-    } else {
-      throw new Error('Invalid request');
+  return new Promise((resolve, reject) => {
+    try {
+      axios.get(tokenUrl).then(response => {
+        if ('access_token' in response) {
+          token = response['access_token'];
+        } else {
+          throw new Error('Invalid request');
+        }
+        resolve(token);
+      }).catch(error => {
+        reject(error);
+      });
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    } finally {
+      console.log('Access Token is: ', token);
     }
-  } catch (error) {
-    console.log(error);
-  } finally {
-    console.log('Access Token is: ', token);
-  }
-  return token;
+  });
 }
 
 const createMessage = (to, from, content) => `
@@ -103,30 +108,30 @@ const handleUnknown = (res, xml) => {
   return res.send(msg)
 };
 const handleText = (res, xml) => {
-    let content = xml.Content[0];
-          let reply = content;
-          content = content.toLowerCase();
-          switch(content) {
-                case 'hi':
-                case 'hello':
-                case 'hey':
-                        reply = content;
-                          break;
-                case 'how are you?':
-                case 'how are you':
-                case 'how are you doing':
-                        reply = "I'm good, what about you?";
-                break;
-                  default:
-                          reply = "I'm afraid I can't comment on that.";
+  let content = xml.Content[0];
+  let reply = content;
+  content = content.toLowerCase();
+  switch (content) {
+    case 'hi':
+    case 'hello':
+    case 'hey':
+      reply = content;
+      break;
+    case 'how are you?':
+    case 'how are you':
+    case 'how are you doing':
+      reply = "I'm good, what about you?";
+      break;
+    default:
+      reply = "I'm afraid I can't comment on that.";
   }
   const msg = createMessage(
-      xml.FromUserName[0],
-      xml.ToUserName[0],
-      reply,
-    )
-    console.log(`WeChat - Responding with: ${msg}`)
-    return res.send(msg)
+    xml.FromUserName[0],
+    xml.ToUserName[0],
+    reply,
+  )
+  console.log(`WeChat - Responding with: ${msg}`)
+  return res.send(msg)
 }
 const handleEvent = (res, xml) => {
   const [event] = xml.Event
@@ -183,15 +188,19 @@ server.listen(port);
  * Event listener for HTTP server "listening" event.
  */
 
-async function onListening() {
+function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   console.log('Listening on ' + bind);
   if (!accessToken) {
-    accessToken = await getAccessToken();
-    fs.writeFile('access-token.txt', accessToken, {encoding: 'utf8'});
+    accessToken = getAccessToken().then(token => {
+      accessToken = token;
+      fs.writeFile('access-token.txt', accessToken, { encoding: 'utf8' });
+    }).catch(error => {
+      fs.writeFile('access-token.txt', error, { encoding: 'utf8' });
+    });
   }
 }
 module.exports = app;
