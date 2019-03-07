@@ -165,6 +165,8 @@ app.post('/wechat', (req, res) => {
   return notFound(res)
 });
 
+const userProfileApi = (openid) => `https://api.wechat.com/cgi-bin/user/info?access_token=${accessToken}&openid=${openid}&lang=en_US`; 
+
 async function getFollowers(req, res) {
   const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
   const followersRes = await axios.get(followersUrl);
@@ -182,8 +184,13 @@ async function getFollowers(req, res) {
   //     ]
   //   }
   // }
+  let result = [];
+  for (let i = 0; i < followersData.data.openid.length; i++) {
+    const userProfile = await axios.get(userProfileApi(followersData.data.openid[i]));
+    result.push(userProfile.data);
+  }
   res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify(followersData));
+  res.end(JSON.stringify(result));
 };
 
 app.get('/followers', getFollowers);

@@ -4,8 +4,8 @@
       <div style="width: 100%;" fxLayout="row" fxLayoutAlign="start center">
         <mat-form-field *ngIf="followers">
           <mat-select [(ngModel)]="recipient" name="recipient">
-            <mat-option *ngFor="let follower of followers" [value]="follower">
-              {{follower}}
+            <mat-option *ngFor="let follower of followers" [value]="follower.openid">
+              {{follower.nickname}}
             </mat-option>
           </mat-select>
         </mat-form-field>

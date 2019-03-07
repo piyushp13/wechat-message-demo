@@ -10,9 +10,9 @@ import { MatSnackBar } from '@angular/material';
 export class MessageBoxComponent implements OnInit {
   public recipient = 'piyush';
   public message = 'Hi';
-  public followers = [];
+  public followers: FollowersResponse[];
   constructor(private messageService: MessageService,
-              private snackBar: MatSnackBar) { }
+    private snackBar: MatSnackBar) { }
 
   ngOnInit() {
     this.getFollowersList();
@@ -28,10 +28,10 @@ export class MessageBoxComponent implements OnInit {
   }
 
   getFollowersList() {
-    this.messageService.getFollowers().subscribe((followersList: (FollowersResponse | FollowersErrorResponse)) => {
-      if (followersList && followersList.hasOwnProperty('data')) {
-        this.followers = followersList.data.openid;
-        this.recipient = this.followers[0] || this.followers[1];
+    this.messageService.getFollowers().subscribe((followersList: (FollowersResponse[])) => {
+      if (followersList && followersList[0]) {
+        this.followers = followersList;
+        this.recipient = this.followers[0].openid;
       } else if (followersList && followersList.hasOwnProperty('errcode')) {
         this.followers = [];
         console.log('Failed to get followers list');
@@ -45,17 +45,16 @@ export class MessageBoxComponent implements OnInit {
 }
 
 interface FollowersResponse {
-  total: number;
-  count: number;
-  data: {
-    openid: string[]
-  };
-  next_openid: string;
-}
-interface FollowersErrorResponse {
-  errcode: number;
+  subscribe: number;
+  openid: string;
+  nickname: string;
+  sex: number;
+  language: string;
+  city: string;
+  province: string;
+  country: string;
+  headimgurl: string;
+  subscribe_time: number;
+  errcode?: number;
   errmsg: string;
-  data: {
-    openid: string[]
-  };
 }
