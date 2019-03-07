@@ -31,6 +31,7 @@ export class MessageBoxComponent implements OnInit {
     this.messageService.getFollowers().subscribe((followersList: (FollowersResponse | FollowersErrorResponse)) => {
       if (followersList && followersList.hasOwnProperty('data')) {
         this.followers = followersList.data.openid;
+        this.recipient = this.followers[0] || this.followers[1];
       } else if (followersList && followersList.hasOwnProperty('errcode')) {
         this.followers = [];
         console.log('Failed to get followers list');
