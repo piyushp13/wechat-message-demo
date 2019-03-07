@@ -65,32 +65,30 @@ function compareSignature(signature, timestamp, nonce) {
   }
 }
 
-function getAccessToken() {
+async function getAccessToken() {
   console.log(`APP_ID=${config.appid}, APP_SECRET=${config.appsecret}`);
   const tokenUrl = `https://api.wechat.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
   let token = null;
-  return new Promise((resolve, reject) => {
-    try {
-      axios.get(tokenUrl).then(response => {
-        const resData = response.data;
-        console.log('Response from Wechat API ', response.data);
-        if ('access_token' in resData) {
-          token = resData['access_token'];
-        } else {
-          throw new Error('Invalid request');
-        }
-        resolve(token);
-      }).catch(error => {
-        console.log('Error hitting WeChat API');
-        reject(error);
-      });
-    } catch (error) {
-      console.log(error);
-      reject(error);
-    } finally {
-      console.log('Access Token is: ', token);
+  let expiryTime = 10;
+  try {
+    const response = await axios.get(tokenUrl);
+    const resData = response.data;
+    console.log('Response from Wechat API ', resData, typeof resData);
+    if (resData && resData.hasOwnProperty('access_token')) {
+      token = resData['access_token'];
+      expiryTime = +resData['expires_in'];
+    } else {
+      throw new Error('Invalid request');
     }
-  });
+  } catch (error) {
+    console.log('Error hitting WeChat API');
+    console.log(error);
+    reject(error);
+  } finally {
+    console.log('Access Token is: ', token);
+    setTimeout(getAccessToken, expiryTime * 1000);
+    return token;
+  }
 }
 
 const createMessage = (to, from, content) => `
