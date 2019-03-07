@@ -86,6 +86,7 @@ async function getAccessToken() {
     reject(error);
   } finally {
     console.log('Access Token is: ', token);
+    accessToken = token;
     setTimeout(getAccessToken, expiryTime * 1000);
     return token;
   }
@@ -164,13 +165,50 @@ app.post('/wechat', (req, res) => {
   return notFound(res)
 });
 
-app.post('/sendMessage', (req, res) => {
+async function getFollowers(req, res) {
+  const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
+  const followersRes = await axios.get(followersUrl);
+  const followersData = followersRes.data;
+  // const followersData = {
+  //   total: 5,
+  //   count: 5,
+  //   data: {
+  //     openid: [
+  //       'Piyush',
+  //       'Sarfraz',
+  //       'Shubham',
+  //       'Sahal',
+  //       'Sakshi'
+  //     ]
+  //   }
+  // }
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(followersData));
+};
+
+app.get('/followers', getFollowers);
+
+async function sendMessage(req, res) {
   res.setHeader('Content-Type', 'text/plain');
   console.log('Request is: ', req.body);
-  res.end('Hello');
-});
+  const message = {
+    "touser": req.body.recipient,
+    "msgtype": "text",
+    "text":
+    {
+      "content": req.body.message
+    }
+  };
+  const serviceMessageUrl = `https://api.wechat.com/cgi-bin/message/custom/send?access_token=${accessToken}`;
+  const response = await axios.post(serviceMessageUrl, message);
+  const resData = response.data;
+  res.end(JSON.stringify(resData));
+}
+
+app.post('/sendMessage', sendMessage);
 var port = process.env.PORT || '3000';
 app.set('port', port);
+
 
 /**
  * Create HTTP server.
@@ -199,14 +237,9 @@ function onListening() {
   console.log('Listening on ' + bind);
   if (!accessToken) {
     accessToken = getAccessToken().then(token => {
-      accessToken = token;
-      fs.writeFile('access-token.txt', accessToken, { encoding: 'utf8' }, () => {
-        console.log('Access token stored');
-      });
+      console.log('Access token stored', accessToken);
     }).catch(error => {
-      fs.writeFile('access-token.txt', error, { encoding: 'utf8' }, () => {
-        console.log('Access token not stored');
-      });
+      console.log('Access token not stored', accessToken);
     });
   }
 }

@@ -14,4 +14,9 @@ export class MessageService {
     const messageBody = { recipient, message };
     return this.http.post(weChatMessageUrl, messageBody, {responseType: 'text'});
   }
+
+  getFollowers() {
+    const wechatFollowersApi = `${environment.restUrl}/followers`;
+    return this.http.get(wechatFollowersApi);
+  }
 }

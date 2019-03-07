@@ -2,9 +2,16 @@
   <form #messageForm="ngForm" (ngSubmit)="onSubmit(messageForm.form.value)">
     <div style="width: 100%;" fxLayout="column" fxLayoutAlign="start center">
       <div style="width: 100%;" fxLayout="row" fxLayoutAlign="start center">
-        <mat-form-field>
-          <input type="text" matInput placeholder="Recipient" [(ngModel)]="recipient" name="recipient">
+        <mat-form-field *ngIf="followers">
+          <mat-select [(ngModel)]="recipient" name="recipient">
+            <mat-option *ngFor="let follower of followers" [value]="follower">
+              {{follower}}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
+        <div *ngIf="!followers">
+          <mat-spinner></mat-spinner>
+        </div>
       </div>
       <div style="width: 100%;" fxLayout="row" fxLayoutAlign="start center">
         <mat-form-field class="example-full-width">
