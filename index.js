@@ -72,9 +72,10 @@ function getAccessToken() {
   return new Promise((resolve, reject) => {
     try {
       axios.get(tokenUrl).then(response => {
-        console.log('Response from Wechat API ', response);
-        if ('access_token' in response) {
-          token = response['access_token'];
+        const resData = response.data;
+        console.log('Response from Wechat API ', response.data);
+        if ('access_token' in resData) {
+          token = resData['access_token'];
         } else {
           throw new Error('Invalid request');
         }
