@@ -200,8 +200,14 @@ async function sendMessage(req, res) {
     }
   };
   const serviceMessageUrl = `https://api.wechat.com/cgi-bin/message/custom/send?access_token=${accessToken}`;
-  const response = await axios.post(serviceMessageUrl, message);
-  const resData = response.data;
+  let resData = 'No response';
+  try {
+    const response = await axios.post(serviceMessageUrl, message);
+    resData = response.data;
+  } catch (error) {
+    console.log('Error hitting message service', error);
+    resData = error.message || 'Error hitting message service';
+  }
   res.end(JSON.stringify(resData));
 }
 
