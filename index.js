@@ -66,11 +66,13 @@ function compareSignature(signature, timestamp, nonce) {
 }
 
 function getAccessToken() {
+  console.log(`APP_ID=${config.appid}, APP_SECRET=${config.appsecret}`);
   const tokenUrl = `https://api.wechat.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
   let token = null;
   return new Promise((resolve, reject) => {
     try {
       axios.get(tokenUrl).then(response => {
+        console.log('Response from Wechat API ', response);
         if ('access_token' in response) {
           token = response['access_token'];
         } else {
@@ -78,6 +80,7 @@ function getAccessToken() {
         }
         resolve(token);
       }).catch(error => {
+        console.log('Error hitting WeChat API');
         reject(error);
       });
     } catch (error) {
