@@ -17,7 +17,6 @@ app.use(bodyParser.xml());
 app.use(bodyParser.json());
 // const router = express.Router();
 
-const projectName = __dirname.split(path.sep).pop();
 const staticDirectory = `${__dirname}${path.sep}dist`;
 console.log(staticDirectory);
 app.use(express.static(staticDirectory));
@@ -134,7 +133,8 @@ const handleText = (res, xml) => {
     xml.ToUserName[0],
     reply,
   )
-  console.log(`WeChat - Responding with: ${msg}`)
+  io.emit("message", { type: "new-message", text: xml.Content[0], from: xml.ToUserName[0] });
+  console.log(`WeChat - Responding with: ${msg}`);
   return res.send(msg)
 }
 const handleEvent = (res, xml) => {
@@ -145,7 +145,8 @@ const handleEvent = (res, xml) => {
       xml.ToUserName[0],
       'Welcome to our Official Account!',
     )
-    console.log(`WeChat - Responding with: ${msg}`)
+    io.emit("message", { type: "new-message", text: `${xml.ToUserName[0]} is now a follower` });
+    console.log(`WeChat - Responding with: ${msg}`);
     return res.send(msg)
   } else {
     return notFound(res)
@@ -165,7 +166,7 @@ app.post('/wechat', (req, res) => {
   return notFound(res)
 });
 
-const userProfileApi = (openid) => `https://api.wechat.com/cgi-bin/user/info?access_token=${accessToken}&openid=${openid}&lang=en_US`; 
+const userProfileApi = (openid) => `https://api.wechat.com/cgi-bin/user/info?access_token=${accessToken}&openid=${openid}&lang=en_US`;
 
 async function getFollowers(req, res) {
   const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
@@ -195,15 +196,14 @@ async function getFollowers(req, res) {
 
 app.get('/followers', getFollowers);
 
-async function sendMessage(req, res) {
-  res.setHeader('Content-Type', 'text/plain');
-  console.log('Request is: ', req.body);
+async function sendMessage(messageDetails) {
+  console.log('Request is: ', messageDetails);
   const message = {
-    "touser": req.body.recipient,
+    "touser": messageDetails.recipient,
     "msgtype": "text",
     "text":
     {
-      "content": req.body.message
+      "content": messageDetails.message
     }
   };
   const serviceMessageUrl = `https://api.wechat.com/cgi-bin/message/custom/send?access_token=${accessToken}`;
@@ -215,10 +215,17 @@ async function sendMessage(req, res) {
     console.log('Error hitting message service', error);
     resData = error.message || 'Error hitting message service';
   }
-  res.end(JSON.stringify(resData));
+  return resData;
 }
 
-app.post('/sendMessage', sendMessage);
+app.post('/sendMessage', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  sendMessage(req.body).then(resData => {
+    res.end(JSON.stringify(resData));
+  }).catch(error => {
+    res.end(JSON.stringify({error: 'Error occured while sending message'}));
+  });
+});
 var port = process.env.PORT || '3000';
 app.set('port', port);
 
@@ -228,6 +235,32 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+const io = require('socket.io')(server, { origins: '*:*' });
+io.on("connection", socket => {
+  // Log whenever a user connects
+  console.log("user connected");
+  socket.emit("message", { type: "new-message", text: "Hi! You're connected to the socket" });
+
+  // Log whenever a client disconnects from our websocket server
+  socket.on("disconnect", function () {
+    console.log("user disconnected");
+  });
+
+  // When we receive a 'message' event from our client, print out
+  // the contents of that message and then echo it back to our client
+  // using `io.emit()`
+  socket.on("message", message => {
+    console.log("Message Received: " + message);
+    try {
+      const parsedMessage = JSON.parse(message);
+      sendMessage(parsedMessage).then(res => {
+        socket.emit("message", {type: "new-message", text: parsedMessage.message });
+      });
+    } catch (error) {
+      console.log('Not a valid format');
+    }
+  });
+});
 
 // server.on('error', onError);
 server.on('listening', onListening);

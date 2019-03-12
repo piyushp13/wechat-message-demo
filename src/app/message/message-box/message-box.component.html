@@ -1,26 +1,32 @@
-<mat-card style="width: 100%;" fxLayout="column" fxLayoutAlign="start center">
-  <form #messageForm="ngForm" (ngSubmit)="onSubmit(messageForm.form.value)">
-    <div style="width: 100%;" fxLayout="column" fxLayoutAlign="start center">
-      <div style="width: 100%;" fxLayout="row" fxLayoutAlign="start center">
-        <mat-form-field *ngIf="followers">
-          <mat-select [(ngModel)]="recipient" name="recipient">
-            <mat-option *ngFor="let follower of followers" [value]="follower.openid">
-              {{follower.nickname}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <div *ngIf="!followers">
-          <mat-spinner></mat-spinner>
+<mat-card style="width: 100%; height: 400px;" fxLayout="row" fxLayoutAlign="space-between center" fxLayout.xs="column"
+  fxLayoutAlign="space-between center">
+  <div id="incoming-messages" #incomingMessages fxFlex="60" fxFlexAlign="stretch" style="overflow-y: auto;">
+
+  </div>
+  <div fxFlex="40" fxLayout="column" fxLayoutAlign="space-between center" fxFlexAlign="stretch">
+    <form #messageForm="ngForm" (ngSubmit)="sendMessage()" style="width: 100%; height: 100%;" fxLayoutAlign="space-between center">
+      <div style="width: 100%;" fxLayout="column" fxLayoutAlign="start center">
+        <div style="width: 100%;" fxLayout="row" fxLayoutAlign="center center">
+          <mat-form-field *ngIf="followers">
+            <mat-select [(ngModel)]="recipient" name="recipient">
+              <mat-option *ngFor="let follower of followers" [value]="follower.openid">
+                {{follower.nickname}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div *ngIf="!followers" fxLayout="row" fxLayoutAlign="center center" style="width: 100%;">
+            <mat-spinner></mat-spinner>
+          </div>
+        </div>
+        <div style="width: 100%;" fxLayout="row" fxLayoutAlign="center center">
+          <mat-form-field class="example-full-width">
+            <textarea matInput placeholder="Enter your message here" [(ngModel)]="message" name="message"></textarea>
+          </mat-form-field>
         </div>
       </div>
-      <div style="width: 100%;" fxLayout="row" fxLayoutAlign="start center">
-        <mat-form-field class="example-full-width">
-          <textarea matInput placeholder="Enter your message here" [(ngModel)]="message" name="message"></textarea>
-        </mat-form-field>
+      <div style="width: 100%;" fxLayout="row" fxLayoutAlign="center center">
+        <button type="submit" mat-raised-button color="accent">Send</button>
       </div>
-    </div>
-    <div style="width: 100%;" fxLayout="row" fxLayoutAlign="center center">
-      <button type="submit" mat-raised-button color="accent">Send</button>
-    </div>
-  </form>
+    </form>
+  </div>
 </mat-card>
