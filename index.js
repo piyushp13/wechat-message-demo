@@ -264,7 +264,7 @@ io.on("connection", socket => {
     try {
       const parsedMessage = JSON.parse(message);
       sendMessage(parsedMessage).then(res => {
-        socket.emit("message", { type: "new-message", text: parsedMessage.message });
+        io.emit("message", { type: "new-message", text: parsedMessage.message });
       });
     } catch (error) {
       console.log('Not a valid format');
