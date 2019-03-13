@@ -18,7 +18,7 @@ export class MessageBoxComponent implements OnInit {
               private chat: ChatService) { }
 
   ngOnInit() {
-    // this.getFollowersList();
+    this.getFollowersList();
     this.pollForChatService().then(res => {
       console.log('Chat instance: ', this.chat);
       this.connectToSocket();
