@@ -110,7 +110,7 @@ const handleUnknown = (res, xml) => {
   console.log(`WeChat - Responding with: ${msg}`)
   return res.send(msg)
 };
-const handleText = (res, xml) => {
+async function handleText(res, xml) {
   let content = xml.Content[0];
   let reply = content;
   content = content.toLowerCase();
@@ -132,10 +132,20 @@ const handleText = (res, xml) => {
     xml.FromUserName[0],
     xml.ToUserName[0],
     reply,
-  )
-  io.emit("message", { type: "new-message", text: xml.Content[0], from: xml.ToUserName[0] });
+  );
+  let sender = xml.FromUserName[0];
+  try {
+    const userProfile = await axios.get(userProfileApi(sender));
+    const userData = userProfile.data;
+    sender = userData.nickname || sender;
+  } catch (error) {
+    console.error(error);
+  } finally {
+    io.emit("message", { type: "new-message", text: xml.Content[0], from: sender });
+  }
   console.log(`WeChat - Responding with: ${msg}`);
-  return res.send(msg)
+  io.emit("message", { type: "new-message", text: reply, from: xml.ToUserName[0] });
+  return res.send(msg);
 }
 const handleEvent = (res, xml) => {
   const [event] = xml.Event
@@ -223,7 +233,7 @@ app.post('/sendMessage', (req, res) => {
   sendMessage(req.body).then(resData => {
     res.end(JSON.stringify(resData));
   }).catch(error => {
-    res.end(JSON.stringify({error: 'Error occured while sending message'}));
+    res.end(JSON.stringify({ error: 'Error occured while sending message' }));
   });
 });
 var port = process.env.PORT || '3000';
@@ -254,7 +264,7 @@ io.on("connection", socket => {
     try {
       const parsedMessage = JSON.parse(message);
       sendMessage(parsedMessage).then(res => {
-        socket.emit("message", {type: "new-message", text: parsedMessage.message });
+        socket.emit("message", { type: "new-message", text: parsedMessage.message });
       });
     } catch (error) {
       console.log('Not a valid format');
