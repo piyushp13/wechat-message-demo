@@ -198,6 +198,7 @@ async function getFollowers(req, res) {
 };
 
 async function getFollowersDetail(res) {
+  let result = [];
     const followersUrl = `https://api.weixin.qq.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
     try {
       const followersRes = await axios.get(followersUrl);
