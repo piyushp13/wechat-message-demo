@@ -182,14 +182,18 @@ async function getFollowers(req, res) {
   if (!accessToken) {
     getAccessToken()
       .then(({ token, expiryTime }) => {
-        getFollowersDetail(res);
+        getFollowersDetail(res).catch(err => {
+          console.log(err);
+        });
       })
       .catch(error => {
         console.log('Error retrieving token');
         res.end(JSON.stringify(result));
       });
   } else {
-    getFollowersDetail(res);
+    getFollowersDetail(res).catch(err => {
+      console.log(err);
+    });
   }
 };
 
