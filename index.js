@@ -66,7 +66,7 @@ function compareSignature(signature, timestamp, nonce) {
 
 async function getAccessToken() {
   console.log(`APP_ID=${config.appid}, APP_SECRET=${config.appsecret}`);
-  const tokenUrl = `https://api.wechat.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
+  const tokenUrl = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
   let token = null;
   let expiryTime = 60;
   try {
