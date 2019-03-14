@@ -10,7 +10,9 @@
           <mat-form-field *ngIf="followers">
             <mat-select [(ngModel)]="recipient" name="recipient">
               <mat-option *ngFor="let follower of followers" [value]="follower.openid">
-                {{follower.nickname}}
+                <span>
+                    <img [src]="follower.headimgurl" alt="pic" height="36px">{{follower.nickname}}
+                </span>
               </mat-option>
             </mat-select>
           </mat-form-field>
