@@ -175,7 +175,7 @@ app.post('/wechat', (req, res) => {
   return notFound(res)
 });
 
-const userProfileApi = (openid) => `https://api.wechat.com/cgi-bin/user/info?access_token=${accessToken}&openid=${openid}&lang=en_US`;
+const userProfileApi = (openid) => `https://api.weixin.qq.com/cgi-bin/user/info?access_token=${accessToken}&openid=${openid}&lang=en_US`;
 
 async function getFollowers(req, res) {
   let result = [];
@@ -194,7 +194,7 @@ async function getFollowers(req, res) {
 };
 
 async function getFollowersDetail(res) {
-    const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
+    const followersUrl = `https://api.weixin.qq.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
     try {
       const followersRes = await axios.get(followersUrl);
       const followersData = followersRes.data;
@@ -222,7 +222,7 @@ async function sendMessage(messageDetails) {
       "content": messageDetails.message
     }
   };
-  const serviceMessageUrl = `https://api.wechat.com/cgi-bin/message/custom/send?access_token=${accessToken}`;
+  const serviceMessageUrl = `https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=${accessToken}`;
   let resData = 'No response';
   try {
     const response = await axios.post(serviceMessageUrl, message);
