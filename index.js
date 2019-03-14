@@ -182,26 +182,18 @@ async function getFollowers(req, res) {
   if (!accessToken) {
     getAccessToken()
       .then(({ token, expiryTime }) => {
-        const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
-        try {
-          const followersRes = await axios.get(followersUrl);
-          const followersData = followersRes.data;
-          for (let i = 0; i < followersData.data.openid.length; i++) {
-            const userProfile = await axios.get(userProfileApi(followersData.data.openid[i]));
-            result.push(userProfile.data);
-          }
-          res.setHeader('Content-Type', 'application/json');
-        } catch (error) {
-          console.log(error);
-        } finally {
-          res.end(JSON.stringify(result));
-        }
+        getFollowersDetail(res);
       })
       .catch(error => {
         console.log('Error retrieving token');
         res.end(JSON.stringify(result));
       });
   } else {
+    getFollowersDetail(res);
+  }
+};
+
+async function getFollowersDetail(res) {
     const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
     try {
       const followersRes = await axios.get(followersUrl);
@@ -216,8 +208,7 @@ async function getFollowers(req, res) {
     } finally {
       res.end(JSON.stringify(result));
     }
-  }
-};
+}
 
 app.get('/followers', getFollowers);
 
