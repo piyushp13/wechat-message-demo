@@ -282,7 +282,7 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   console.log('Listening on ' + bind);
-  let expiryTime = 180;
+  let expiryTime = 1800;
   if (!accessToken) {
     accessToken = getAccessToken().then(({token, expiryTime}) => {
       console.log('Access token stored', accessToken);
@@ -291,6 +291,8 @@ function onListening() {
       console.log('Access token not stored', accessToken);
       setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
     });
+  } else {
+    console.log('Access token is', accessToken);
   }
   setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
 }
