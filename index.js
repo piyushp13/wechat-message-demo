@@ -68,7 +68,7 @@ async function getAccessToken() {
   console.log(`APP_ID=${config.appid}, APP_SECRET=${config.appsecret}`);
   const tokenUrl = `https://api.wechat.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.appsecret}`;
   let token = null;
-  let expiryTime = 10;
+  let expiryTime = 60;
   try {
     const response = await axios.get(tokenUrl);
     const resData = response.data;
@@ -86,7 +86,7 @@ async function getAccessToken() {
   } finally {
     console.log('Access Token is: ', token);
     accessToken = token;
-    // setTimeout(getAccessToken, Math.min(expiryTime - 60, 1) * 1000);
+    setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
     return token;
   }
 }
