@@ -86,7 +86,7 @@ async function getAccessToken() {
   } finally {
     console.log('Access Token is: ', token);
     accessToken = token;
-    setTimeout(getAccessToken, Math.min(expiryTime - 60, 1) * 1000);
+    // setTimeout(getAccessToken, Math.min(expiryTime - 60, 1) * 1000);
     return token;
   }
 }
