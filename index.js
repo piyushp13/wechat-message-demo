@@ -5,7 +5,7 @@ const http = require('http');
 const cors = require('cors');
 const axios = require('axios');
 const fs = require('fs');
-let accessToken = null;
+let accessToken = '19_tipvwu7xuwSDxEevpxd4CSowdsr3R8CMaKVEg5_G1ry9O1bnnJZmzaT31BVc2vqLrhEeWDbw9WJJ-XnsA-WZHvM_p3AkLfa6FwC5_29K1ufTf-V08yJE4P05zM2NhAOKuvpH1J1_0r7qlwVzDNQcAEAGQT';
 // const wechat = require('wechat'); // Github: https://github.com/node-webot/wechat
 
 const bodyParser = require('body-parser');
@@ -86,8 +86,7 @@ async function getAccessToken() {
   } finally {
     console.log('Access Token is: ', token);
     accessToken = token;
-    setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
-    return token;
+    return {token, expiryTime};
   }
 }
 
@@ -180,28 +179,20 @@ const userProfileApi = (openid) => `https://api.wechat.com/cgi-bin/user/info?acc
 
 async function getFollowers(req, res) {
   const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
-  const followersRes = await axios.get(followersUrl);
-  const followersData = followersRes.data;
-  // const followersData = {
-  //   total: 5,
-  //   count: 5,
-  //   data: {
-  //     openid: [
-  //       'Piyush',
-  //       'Sarfraz',
-  //       'Shubham',
-  //       'Sahal',
-  //       'Sakshi'
-  //     ]
-  //   }
-  // }
   let result = [];
-  for (let i = 0; i < followersData.data.openid.length; i++) {
-    const userProfile = await axios.get(userProfileApi(followersData.data.openid[i]));
-    result.push(userProfile.data);
+  try {
+    const followersRes = await axios.get(followersUrl);
+    const followersData = followersRes.data;
+    for (let i = 0; i < followersData.data.openid.length; i++) {
+      const userProfile = await axios.get(userProfileApi(followersData.data.openid[i]));
+      result.push(userProfile.data);
+    }
+    res.setHeader('Content-Type', 'application/json');
+  } catch(error) {
+    console.log(error);
+  } finally {
+    res.end(JSON.stringify(result));
   }
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify(result));
 };
 
 app.get('/followers', getFollowers);
@@ -291,12 +282,16 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   console.log('Listening on ' + bind);
+  let expiryTime = 180;
   if (!accessToken) {
-    accessToken = getAccessToken().then(token => {
+    accessToken = getAccessToken().then(({token, expiryTime}) => {
       console.log('Access token stored', accessToken);
+      setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
     }).catch(error => {
       console.log('Access token not stored', accessToken);
+      setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
     });
   }
+  setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
 }
 module.exports = app;
