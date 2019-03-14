@@ -86,7 +86,7 @@ async function getAccessToken() {
   } finally {
     console.log('Access Token is: ', token);
     accessToken = token;
-    return {token, expiryTime};
+    return { token, expiryTime };
   }
 }
 
@@ -178,20 +178,44 @@ app.post('/wechat', (req, res) => {
 const userProfileApi = (openid) => `https://api.wechat.com/cgi-bin/user/info?access_token=${accessToken}&openid=${openid}&lang=en_US`;
 
 async function getFollowers(req, res) {
-  const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
   let result = [];
-  try {
-    const followersRes = await axios.get(followersUrl);
-    const followersData = followersRes.data;
-    for (let i = 0; i < followersData.data.openid.length; i++) {
-      const userProfile = await axios.get(userProfileApi(followersData.data.openid[i]));
-      result.push(userProfile.data);
+  if (!accessToken) {
+    getAccessToken()
+      .then(({ token, expiryTime }) => {
+        const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
+        try {
+          const followersRes = await axios.get(followersUrl);
+          const followersData = followersRes.data;
+          for (let i = 0; i < followersData.data.openid.length; i++) {
+            const userProfile = await axios.get(userProfileApi(followersData.data.openid[i]));
+            result.push(userProfile.data);
+          }
+          res.setHeader('Content-Type', 'application/json');
+        } catch (error) {
+          console.log(error);
+        } finally {
+          res.end(JSON.stringify(result));
+        }
+      })
+      .catch(error => {
+        console.log('Error retrieving token');
+        res.end(JSON.stringify(result));
+      });
+  } else {
+    const followersUrl = `https://api.wechat.com/cgi-bin/user/get?access_token=${accessToken}&next_openid=`;
+    try {
+      const followersRes = await axios.get(followersUrl);
+      const followersData = followersRes.data;
+      for (let i = 0; i < followersData.data.openid.length; i++) {
+        const userProfile = await axios.get(userProfileApi(followersData.data.openid[i]));
+        result.push(userProfile.data);
+      }
+      res.setHeader('Content-Type', 'application/json');
+    } catch (error) {
+      console.log(error);
+    } finally {
+      res.end(JSON.stringify(result));
     }
-    res.setHeader('Content-Type', 'application/json');
-  } catch(error) {
-    console.log(error);
-  } finally {
-    res.end(JSON.stringify(result));
   }
 };
 
@@ -282,9 +306,9 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   console.log('Listening on ' + bind);
-  let expiryTime = 1800;
+  let expiryTime = 60;
   if (!accessToken) {
-    accessToken = getAccessToken().then(({token, expiryTime}) => {
+    accessToken = getAccessToken().then(({ token, expiryTime }) => {
       console.log('Access token stored', accessToken);
       setTimeout(getAccessToken, Math.max(expiryTime - 60, 60) * 1000);
     }).catch(error => {
