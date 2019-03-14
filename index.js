@@ -5,7 +5,7 @@ const http = require('http');
 const cors = require('cors');
 const axios = require('axios');
 const fs = require('fs');
-let accessToken = '19_tipvwu7xuwSDxEevpxd4CSowdsr3R8CMaKVEg5_G1ry9O1bnnJZmzaT31BVc2vqLrhEeWDbw9WJJ-XnsA-WZHvM_p3AkLfa6FwC5_29K1ufTf-V08yJE4P05zM2NhAOKuvpH1J1_0r7qlwVzDNQcAEAGQT';
+let accessToken = null;
 // const wechat = require('wechat'); // Github: https://github.com/node-webot/wechat
 
 const bodyParser = require('body-parser');
